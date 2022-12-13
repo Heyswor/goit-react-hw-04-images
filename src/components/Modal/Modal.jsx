@@ -1,37 +1,41 @@
-import React, { Component } from 'react';
+import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import PropTypes from 'prop-types';
 import css from './Modal.module.css';
 
 const modalRoot = document.querySelector('#modal-root');
 
-export class Modal extends Component {
-  componentDidMount() {
-    window.addEventListener('keydown', this.handleEscPress);
-  }
+export function Modal({ onClose, children }) {
+  useEffect(() => {
+    window.addEventListener('keydown', handleEscPress);
 
-  componentWillUnmount() {
-    window.removeEventListener('keydown', this.handleEscPress);
-  }
+    return () => {
+      return window.removeEventListener('keydown', handleEscPress);
+    };
+  });
 
-  handleEscPress = evt => {
+  function handleEscPress(evt) {
     if (evt.code === 'Escape') {
-      this.props.onClose();
+      onClose();
     }
-  };
-  render() {
-    const { onClose , children} = this.props;
-    return createPortal(
-      <div className={css.Overlay}>
-        <div className={css.Modal} onClick={onClose}>
-          {children}
-        </div>
-      </div>,
-      modalRoot
-    );
   }
+  function handleBackdropClick(event) {
+    console.log(event.target);
+    console.log(event.currentTarget);
+    if (event.currentTarget === event.target) {
+      onClose();
+    }
+  }
+
+  return createPortal(
+    <div className={css.Overlay} onClick={handleBackdropClick}>
+      <div className={css.Modal}>{children}</div>
+    </div>,
+    modalRoot
+  );
 }
 
 Modal.propTypes = {
+  onClose: PropTypes.func.isRequired,
   children: PropTypes.node.isRequired,
 };
